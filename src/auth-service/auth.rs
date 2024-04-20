@@ -76,15 +76,21 @@ impl Auth for AuthService {
 
         let req = request.into_inner();
 
-        let result: Result<(), String> = todo!(); // Create a new user through `users_service`. Panic if the lock is poisoned.
+        let result: Result<(), String> = self.users_service.lock().unwrap().create_user(req.username, req.password); // Create a new user through `users_service`. Panic if the lock is poisoned.
 
         // TODO: Return a `SignUpResponse` with the appropriate `status_code` based on `result`.
         match result {
             Ok(_) => {
-                todo!()
+                let reply: SignUpResponse = SignUpResponse{
+                    status_code : 1,
+                };
+                return Ok(Response::new(reply.into()));
             }
             Err(_) => {
-                todo!()
+                let reply: SignUpResponse = SignUpResponse{
+                    status_code : 0,
+                };
+                return Ok(Response::new(reply.into()));
             }
         }
     }
@@ -97,9 +103,14 @@ impl Auth for AuthService {
 
         let req = request.into_inner();
 
-        // TODO: Delete session using `sessions_service`.
+        let session_token = req.session_token;
 
-        let reply: SignOutResponse = todo!(); // Create `SignOutResponse` with `status_code` set to `Success`
+        // TODO: Delete session using `sessions_service`.
+        self.sessions_service.lock().unwrap().delete_session(&session_token);
+
+        let reply: SignOutResponse = SignOutResponse{
+            status_code : 1,
+        }; // Create `SignOutResponse` with `status_code` set to `Success`
 
         Ok(Response::new(reply))
     }
