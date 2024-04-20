@@ -75,7 +75,7 @@ impl Users for UsersImpl {
             Ok(_) => return Some(user.unwrap().user_uuid.clone()),
             Err(_) => return None,
         }
-
+ 
     }
 
     fn delete_user(&mut self, user_uuid: String) {
