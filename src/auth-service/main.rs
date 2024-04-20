@@ -20,6 +20,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let auth_service = AuthService::new(users_service, sessions_service);
 
+
+    
     // Instantiate gRPC server
     Server::builder()
         .add_service(AuthServer::new(auth_service))
