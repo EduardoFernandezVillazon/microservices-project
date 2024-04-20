@@ -57,10 +57,13 @@ impl Users for UsersImpl {
     }
 
     fn get_user_uuid(&self, username: String, password: String) -> Option<String> {
-        let user: &User = self.username_to_user.get(&username).unwrap(); // Retrieve `User` or return `None` is user can't be found.
-
+        
+        let user: Option<&User> = self.username_to_user.get(&username); // Retrieve `User` or return `None` is user can't be found.
+        if user.is_none() {
+            return None;
+        }
         // Get user's password as `PasswordHash` instance. 
-        let hashed_password = user.password.clone();
+        let hashed_password = user.unwrap().password.clone();
         let parsed_hash = PasswordHash::new(&hashed_password).ok()?;
 
         // Verify passed in password matches user's password.
@@ -69,7 +72,7 @@ impl Users for UsersImpl {
         // TODO: If the username and password passed in matches the user's username and password return the user's uuid.
 
         match result {
-            Ok(_) => return Some(user.user_uuid.clone()),
+            Ok(_) => return Some(user.unwrap().user_uuid.clone()),
             Err(_) => return None,
         }
 

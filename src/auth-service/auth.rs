@@ -2,7 +2,7 @@ use std::sync::Mutex;
 
 use crate::{sessions::Sessions, users::Users};
 
-use tonic::{Request, Response, Status};
+use tonic::{Request, Response, Status, Code};
 
 use authentication::auth_server::Auth;
 use authentication::{
@@ -45,18 +45,28 @@ impl Auth for AuthService {
 
         let req = request.into_inner();
 
-        let result: Option<String> = todo!(); // Get user's uuid from `users_service`. Panic if the lock is poisoned.
+        let result: Option<String> = self.users_service.lock().unwrap().get_user_uuid(req.username, req.password);
 
-        // Match on `result`. If `result` is `None` return a SignInResponse with a the `status_code` set to `Failure`
-        // and `user_uuid`/`session_token` set to empty strings.
-        let user_uuid: String = todo!();
-
-        let session_token: String = todo!(); // Create new session using `sessions_service`. Panic if the lock is poisoned.
-
-        let reply: SignInResponse = todo!(); // Create a `SignInResponse` with `status_code` set to `Success`
-
-        Ok(Response::new(reply))
+        if result.is_none() { 
+            let reply: SignInResponse = SignInResponse{
+                status_code : 0,
+                user_uuid : "".to_string(),
+                session_token : "".to_string(),
+            };
+            return Ok(Response::new(reply.into()));
+        }       
+        else {
+            let user_uuid: String = result.unwrap();
+            let session_token: String = self.sessions_service.lock().unwrap().create_session(&user_uuid);
+            let reply: SignInResponse = SignInResponse{
+                status_code : 1,
+                user_uuid : user_uuid,
+                session_token : session_token,
+            };
+            return Ok(Response::new(reply.into()));
+        }
     }
+    
 
     async fn sign_up(
         &self,
